@@ -3,27 +3,133 @@ from random import shuffle
 import copy
 
 class NLHoldemEngine:
+    """
+    A Class used to run a game of No Limit Texas Holdem
     
+    The maximum number of supported players is 6
+    
+    
+    Attributes
+    ---------------
+    
+    min_players : int
+        The minmimum number of players supported
+        
+    max_players : int
+        The maximum number of players supported
+        
+    player_order : list
+        A list of positions arranged in order of play
+    
+    deal_order : list
+        A list of positions arranged in the order to be dealt
+    
+    position : list
+        The list of positions. this has been ordered such that slicing returns
+        the correct positions, e.g. positions[:3] gives the positions for a 3 player game
+        
+    plays : list
+        The plays available to a player during their turn, only 6 plays are implemented
+        'C' -> Call/Check
+        'F' -> Fold
+        'A' -> All In
+        '2BB' -> Bet 2 * Big Blind
+        '3BB' -> Bet 3 * Big Blind
+        'R' -> Raise some other amount
+    
+    hand_type : dict
+        A dict that maps integer ranks to different hands. 
+    
+    max_rank : int
+        The maximum hand rank. In a standard 52 card deck this is 12
+        
+        
+        
+    Methods
+    
+    ----------------
+    
+    deal(number_of_cards) :  list
+        deals number_of_cards and returns them as a list
+        
+    deal_flop() : None
+        deals the flop
+    
+    deal_turn() : None
+        deals the turn
+        
+    deal_river() : None
+        deals the river
+    
+    reset_deck() : None
+        reset self.deck
+        
+    format_cards(cards) : list
+        returns a list of formatted cards e.g. (0, 0) returns '2h' 
+        
+        
+    
+    
+    get_flop() : list
+        returns the formatted flop cards 
+        
+    get_turn() : list
+        returns the formatted turn cards 
+    
+    get_river() : list
+        returns the formatted river cards
+    
+    get_player_info() : dict
+        return a dict of dicts that stores the player information
+    
+    get_positions() : list
+        returns a list of positions for the game
+               
+    get_position_who_raised() : str
+        return the postion who raised. If no one has raise then is returns 'BB'
+    
+    get_amount_to_call() : float
+        returns the amount to needed to call. This does not include the amount already paid in by the current position
+    
+    get_current_position() : str
+        returns the current position
+    
+    set_current_position(position) : None
+        set the current postion to position
+    
+    get_player(position) : str
+        get the name of the player in position
+        
+    get_players() : list
+        return the list of players in the game
+    
+
+    all_folded() : bool
+        returns True if all of the players have folded,
+
+
+    get_pot() : float
+        return the pot size
+    
+    get_BB() : float
+        return self.BB
+    
+    def get_SB(self):
+        return self.SB
+  
+    
+    """
     min_players = 2    
     max_players = 6
-    
-    #These outline the play and deal order for NL Holdem
+
     play_order = ['UTG','MP','CO', 'D', 'SB','BB']
     deal_order = ['SB','BB', 'UTG','MP','CO', 'D']
     
-    #This list is ordered so that slicing will return the correct
-    #list of postions for a given number of players, e.g a table with only 4
-    #players will have 'BB', 'SB', 'D' and 'UTG' as the positions
+  
     positions = ['BB', 'SB', 'D', 'UTG','CO', 'MP']
     
     
-    #These are the plays a player can make during their turn.
-    # C -> Call/Check
-    # F -> Fold
-    # A -> All In
-    # 2BB -> Bet 2*BB
-    # 3BB -> Bet 3*BB
-    # R -> Raise some other amount
+ 
     plays = ['C', 'F', 'A', '2BB', '3BB', 'R']
     
     
@@ -32,7 +138,7 @@ class NLHoldemEngine:
                  4: 'Straight', 5: 'Flush', 6: 'Full House', 7: 'Four of a Kind',
                  8: 'Straight Flush'}
 
-    max_card_value = 12
+    max_rank = 12
     
     def __init__(self, players, buyins, max_buyin, min_buyin, BB, SB = None):
         
@@ -46,19 +152,19 @@ class NLHoldemEngine:
         self.min_buyin = min_buyin
         
         #Encode the deck as a list of tuples
-        self.deck_values = range(NLHoldemEngine.max_card_value+1)
+        self.deck_ranks = range(NLHoldemEngine.max_rank+1)
         self.deck_suits = range(4)
-        self.deck = [(value, suit) for value in self.deck_values for suit in self.deck_suits]
+        self.deck = [(rank, suit) for rank in self.deck_ranks for suit in self.deck_suits]
         
         
-        self.value_mapping = {}
-        for value in self.deck_values:
-            self.value_mapping[value] = str(value+2)
+        self.rank_mapping = {}
+        for rank in self.deck_ranks:
+            self.rank_mapping[rank] = str(rank+2)
         
-        self.value_mapping[NLHoldemEngine.max_card_value] = 'A'
-        self.value_mapping[NLHoldemEngine.max_card_value-1] = 'K'
-        self.value_mapping[NLHoldemEngine.max_card_value-2] = 'Q'
-        self.value_mapping[NLHoldemEngine.max_card_value-3] = 'J'
+        self.rank_mapping[NLHoldemEngine.max_rank] = 'A'
+        self.rank_mapping[NLHoldemEngine.max_rank-1] = 'K'
+        self.rank_mapping[NLHoldemEngine.max_rank-2] = 'Q'
+        self.rank_mapping[NLHoldemEngine.max_rank-3] = 'J'
         
     
         self.suit_mapping = {0: 'd', 1: 'h', 2: 'c', 3: 's'}    
@@ -146,7 +252,7 @@ class NLHoldemEngine:
     
         
     def reset_deck(self):
-        self.deck = shuffle([(value, suit) for value in self.deck_values for suit in self.deck_suits])   
+        self.deck = shuffle([(rank, suit) for rank in self.deck_ranks for suit in self.deck_suits])   
         
         
     def formatted_cards(self, cards):
@@ -157,9 +263,9 @@ class NLHoldemEngine:
         
             for card in cards:
             
-                value, suit = card
+                rank, suit = card
                 
-                formatted_card = self.value_mapping[value] + self.suit_mapping[suit]
+                formatted_card = self.rank_mapping[rank] + self.suit_mapping[suit]
                 
                 formatted_cards.append(formatted_card)
             
@@ -176,6 +282,9 @@ class NLHoldemEngine:
         return self.formatted_cards(self.river)
        
             
+       
+        
+       
     def get_player_info(self):
     
         dict_deepcopy = copy.deepcopy(self.table)
@@ -211,16 +320,7 @@ class NLHoldemEngine:
     def get_players(self):
         return self.players   
   
-    def get_pot(self):
-        return self.pot
     
-    def get_BB(self):
-        return self.BB
-    
-    def get_SB(self):
-        return self.SB
-    
-
     def all_folded(self):
 
         total = 0
@@ -230,6 +330,18 @@ class NLHoldemEngine:
             total += self.table[pos]['in play']
 
         return (total == 1)        
+  
+
+    def get_pot(self):
+        return self.pot
+    
+    def get_BB(self):
+        return self.BB
+    
+    def get_SB(self):
+        return self.SB
+  
+
 
     
 
@@ -397,15 +509,15 @@ class NLHoldemEngine:
        
     def best_hand(self, player_pos):
         #Different hand types are encoded using 
-        #(max_value_count, (max_suit_count>=5), hand_identifier)
+        #(max_rank_count, (max_suit_count>=5), hand_identifier)
         #where:
         
-        #max_value_count is the highest number of matching values in a hand,
+        #max_rank_count is the highest number of matching ranks in a hand,
         #(max_suit_count>=5) is a boolean for if the number of matching suits is >= 5
-        #hand_identifier is a condition used to distinguish 2 hands where max_value_count
+        #hand_identifier is a condition used to distinguish 2 hands where max_rank_count
         #and (max_suit_count>=5) can't.
         
-        #e.g. a hand with max_value_count==2 and (max_suit_count>=5) == False 
+        #e.g. a hand with max_rank_count==2 and (max_suit_count>=5) == False 
         #is either a pair or 2 pair. hand_identifier == 0 and hand_identifier == 1
         #distinguishes these two cases respectively.
         
@@ -423,24 +535,24 @@ class NLHoldemEngine:
             
             #Initalize some variables
             final_hand = []
-            best_hand_values = []
-            max_value_count = 1
+            best_hand_ranks = []
+            max_rank_count = 1
             max_suit_count = 2
             hand_identifer = 0
-            max_card_value = NLHoldemEngine.max_card_value
+            max_rank = NLHoldemEngine.max_rank
             
             #Read in the full 7 card hand
             full_hand = self.table[player_pos]['hand'] + self.flop \
                         + self.turn + self.river
             
             suits_in_hand = []
-            values_in_hand = []
+            ranks_in_hand = []
             
             for card in full_hand:
             
-                value, suit = card
+                rank, suit = card
                 
-                values_in_hand.append(value)
+                ranks_in_hand.append(rank)
                 
                 suits_in_hand.append(suit)
             
@@ -456,29 +568,29 @@ class NLHoldemEngine:
             if max_suit_count < 5:
                 
                 #Create a list of numbers [12,.., ] sorted descending
-                decending_number_list = list(max_card_value+1)
+                decending_number_list = list(max_rank+1)
                 decending_number_list.reverse()
                 
-                #Create a list of card values(e.g. 'J' has a value of 11) sorted 
-                #in descending order. Then count how many of each value we have. 
+                #Create a list of card ranks(e.g. 'J' has a rank of 11) sorted 
+                #in descending order. Then count how many of each rank we have. 
                 #Take the maximum count
-                values_in_hand.sort(reverse = True)
-                value_count = [values_in_hand.count(number) for number in decending_number_list]
-                max_value_count = max(value_count)
+                ranks_in_hand.sort(reverse = True)
+                rank_count = [ranks_in_hand.count(number) for number in decending_number_list]
+                max_rank_count = max(rank_count)
                 
                 
                 #This is a handy function internal to this method. It returns
                 #the first set (pair, 3 of a kind, 4 of a kind) found in the hand.
                 #Since this has been sorted in descending order, the first set has
-                #the highest value
-                def find_set(value_count, set_number):
+                #the highest rank
+                def find_set(rank_count, set_number):
                     
-                    number = max_card_value - value_count.index(set_number)
+                    number = max_rank - rank_count.index(set_number)
                     
                     return [number]*set_number
                 
                 #This function is internal to this method. It returns a list of
-                #values to complete our hand (Ace high, King high, etc.)
+                #ranks to complete our hand (Ace high, King high, etc.)
                 def find_kickers(full_hand, cards_used, number_of_kickers):
                     
                     kickers = []
@@ -495,63 +607,63 @@ class NLHoldemEngine:
   
                 
                 #Here we check all combinations of pairs, 3 of a kind and 4 of a kind  
-                if max_value_count <= 4:
+                if max_rank_count <= 4:
                     
-                    best_hand_values = find_set(value_count, max_value_count)
+                    best_hand_ranks = find_set(rank_count, max_rank_count)
                     
                     
-                    if max_value_count == 3:
+                    if max_rank_count == 3:
                         
-                        hand_identifer = int(2 in value_count)
+                        hand_identifer = int(2 in rank_count)
                         
                         if hand_identifer == 1:
-                            best_hand_values = best_hand_values + find_set(value_count, 2)
+                            best_hand_ranks = best_hand_ranks + find_set(rank_count, 2)
                     
-                    elif max_value_count == 2:
+                    elif max_rank_count == 2:
                         
-                        idx = max_card_value - best_hand_values[0]
+                        idx = max_rank - best_hand_ranks[0]
                         
-                        if idx < (len(value_count)- 1):
+                        if idx < (len(rank_count)- 1):
                             
-                            hand_identifer = int(2 in value_count[idx+1:])
+                            hand_identifer = int(2 in rank_count[idx+1:])
                             
                             if hand_identifer == 1:
                                 
-                                second_idx = value_count[idx+1:].index(2)
+                                second_idx = rank_count[idx+1:].index(2)
                                 
                                 full_idx = second_idx + idx + 1
                                 
-                                best_hand_values = best_hand_values + ([max_card_value - full_idx]*2)
+                                best_hand_ranks = best_hand_ranks + ([max_rank - full_idx]*2)
                     
                     #Add any kickers to complete the hand(if needed)
-                    best_hand_values = best_hand_values + find_kickers(values_in_hand, best_hand_values, 5-len(best_hand_values))
+                    best_hand_ranks = best_hand_ranks + find_kickers(ranks_in_hand, best_hand_ranks, 5-len(best_hand_ranks))
                 
                 
                 #Here we check for straight and high card
                 else:
                     
-                    best_hand_values = values_in_hand[:5]
+                    best_hand_ranks = ranks_in_hand[:5]
                     
                     
-                    for idx in range(len(values_in_hand) - 4):
+                    for idx in range(len(ranks_in_hand) - 4):
                         
-                        hand_identifer = int(values_in_hand[idx] == (values_in_hand[idx+4] + 4))
+                        hand_identifer = int(ranks_in_hand[idx] == (ranks_in_hand[idx+4] + 4))
                         
                         if hand_identifer == 1:
                         
-                            best_hand_values = values_in_hand[idx:idx+5]
+                            best_hand_ranks = ranks_in_hand[idx:idx+5]
                             break
                     
                     #This is a special case where we check [A,5,4,3,2]
-                    if values_in_hand[0] == max_card_value:
+                    if ranks_in_hand[0] == max_rank:
                         
-                        for idx in range(len(values_in_hand) - 3):
+                        for idx in range(len(ranks_in_hand) - 3):
                         
-                            hand_identifer = int((values_in_hand[idx+1] == 3) and(values_in_hand[idx+3] == 0))
+                            hand_identifer = int((ranks_in_hand[idx+1] == 3) and(ranks_in_hand[idx+3] == 0))
                             
                             if hand_identifer == 1:
                             
-                                best_hand_values = values_in_hand[0] + values_in_hand[idx+1:idx+5]
+                                best_hand_ranks = ranks_in_hand[0] + ranks_in_hand[idx+1:idx+5]
                                 break
                             
                                 
@@ -563,17 +675,17 @@ class NLHoldemEngine:
                 #suit to each card to get the final_hand
                 unique_list = []
                 
-                for value in best_hand_values:
+                for rank in best_hand_ranks:
                 
-                    if value not in unique_list:
+                    if rank not in unique_list:
                     
-                        unique_list.append(value)
+                        unique_list.append(rank)
                 
-                for value in unique_list:
+                for rank in unique_list:
                     
-                    suits = [s for (v, s) in full_hand if v==value]
+                    suits = [s for (v, s) in full_hand if v==rank]
                     
-                    cards = [(value, s) for s in suits]
+                    cards = [(rank, s) for s in suits]
                     
                     final_hand = final_hand + cards
     
@@ -585,36 +697,36 @@ class NLHoldemEngine:
                 
                 
                 #Find out the matching suit, then pick out all the cards
-                #with this suit. Then map these cards to their values
+                #with this suit. Then map these cards to their ranks
                 suit = self.deck_suits[suit_count.index(max(suit_count))]
                 
-                values_in_hand = [v for (v, s) in full_hand if s == suit]
+                ranks_in_hand = [v for (v, s) in full_hand if s == suit]
                 
-                values_in_hand.sort(reverse = True)
+                ranks_in_hand.sort(reverse = True)
             
         
-                best_hand_values = values_in_hand[:5]
+                best_hand_ranks = ranks_in_hand[:5]
                     
                     
-                for idx in range(len(values_in_hand) - 4):
+                for idx in range(len(ranks_in_hand) - 4):
                     
-                    hand_identifer = int(values_in_hand[idx] == (values_in_hand[idx+4] + 4))
+                    hand_identifer = int(ranks_in_hand[idx] == (ranks_in_hand[idx+4] + 4))
                     
                     if hand_identifer == 1:
                     
-                        best_hand_values = values_in_hand[idx:idx+5]
+                        best_hand_ranks = ranks_in_hand[idx:idx+5]
                         break
                 
                 #This is a special case where we check [A,5,4,3,2]
-                if values_in_hand[0] == max_card_value:
+                if ranks_in_hand[0] == max_rank:
                     
-                    for idx in range(len(values_in_hand) - 3):
+                    for idx in range(len(ranks_in_hand) - 3):
                     
-                        hand_identifer = int((values_in_hand[idx+1] == 3) and(values_in_hand[idx+3] == 0))
+                        hand_identifer = int((ranks_in_hand[idx+1] == 3) and(ranks_in_hand[idx+3] == 0))
                         
                         if hand_identifer == 1:
                         
-                            best_hand_values = values_in_hand[0] + values_in_hand[idx+1:idx+5]
+                            best_hand_ranks = ranks_in_hand[0] + ranks_in_hand[idx+1:idx+5]
                             break
                         
 
@@ -624,22 +736,22 @@ class NLHoldemEngine:
                 #suit to each card to get the final_hand
                 unique_list = []
                 
-                for value in best_hand_values:
+                for rank in best_hand_ranks:
                 
-                    if value not in unique_list:
+                    if rank not in unique_list:
                     
-                        unique_list.append(value)
+                        unique_list.append(rank)
                 
                 
-                for value in unique_list:
+                for rank in unique_list:
                     
-                    final_hand.append((value,suit))
+                    final_hand.append((rank,suit))
                     
 
                 
             #Map the hand_type using characeristics of the hand determined during
             #run time
-            hand_type = hand_mapping[(max_value_count, max_suit_count>=5, hand_identifer)]    
+            hand_type = hand_mapping[(max_rank_count, max_suit_count>=5, hand_identifer)]    
             
             #Done
             return (hand_type, final_hand)
@@ -654,13 +766,13 @@ class NLHoldemEngine:
         _set1 = 0
         _set2 = 0
         
-        for value in hand1:
-            if hand1.count(value) == set_number:
-                _set1 = value
+        for rank in hand1:
+            if hand1.count(rank) == set_number:
+                _set1 = rank
         
-        for value in hand2:
-            if hand2.count(value) == set_number:
-                _set2 = value
+        for rank in hand2:
+            if hand2.count(rank) == set_number:
+                _set2 = rank
         
         
         if _set1 > _set2:
@@ -675,48 +787,48 @@ class NLHoldemEngine:
         
     def winning_two_pair(self, hand1, hand2):
         
-        value1 = 0
-        value2 = 0
+        rank1 = 0
+        rank2 = 0
         
-        for value in hand1:
-            if hand1.count(value) == 2:
-                value1 = value
+        for rank in hand1:
+            if hand1.count(rank) == 2:
+                rank1 = rank
                 break
         
-        for value in hand2:
-            if hand2.count(value) == 2:
-                value2 = value
+        for rank in hand2:
+            if hand2.count(rank) == 2:
+                rank2 = rank
                 break
 
-        if value1 > value2:
+        if rank1 > rank2:
             return hand1
         
-        elif value1 < value2:
+        elif rank1 < rank2:
             return hand2
         
         else:
             
-            hand1.remove(value1)
-            hand1.remove(value1)
+            hand1.remove(rank1)
+            hand1.remove(rank1)
             
-            hand2.remove(value2)
-            hand2.remove(value2)
+            hand2.remove(rank2)
+            hand2.remove(rank2)
             
             
-            for value in hand1:
-                if hand1.count(value) == 2:
-                    value1 = value
+            for rank in hand1:
+                if hand1.count(rank) == 2:
+                    rank1 = rank
                     break
             
-            for value in hand2:
-                if hand2.count(value) == 2:
-                    value2 = value
+            for rank in hand2:
+                if hand2.count(rank) == 2:
+                    rank2 = rank
                     break
         
-            if value1 > value2:
+            if rank1 > rank2:
                 return hand1
         
-            elif value1 < value2:
+            elif rank1 < rank2:
                 return hand2
             
             else:
@@ -726,14 +838,14 @@ class NLHoldemEngine:
         
         winner = []
         
-        for value1, value2 in zip(hand1, hand2):
+        for rank1, rank2 in zip(hand1, hand2):
            
             if winner == []:
                 
-                if value1 > value2:
+                if rank1 > rank2:
                     winner = hand1
                 
-                elif value1 < value2:
+                elif rank1 < rank2:
                     winner = hand2
         
         return winner
@@ -801,11 +913,11 @@ class NLHoldemEngine:
             
             current_hand_type, current_hand = self.best_hand(current_position)
             
-            current_hand_values = []
+            current_hand_ranks = []
             
-            for (value, suit) in current_hand:
+            for (rank, suit) in current_hand:
                 
-                current_hand_values.append(value)
+                current_hand_ranks.append(rank)
             
             
             
@@ -815,7 +927,7 @@ class NLHoldemEngine:
                 
                 best_hand = current_hand
                 
-                best_hand_values = current_hand_values
+                best_hand_ranks = current_hand_ranks
                 
                 winning_players = [current_position]
                 
@@ -827,12 +939,12 @@ class NLHoldemEngine:
                 
                 if best_hand_sorted == False:
            
-                    best_hand_values.sort(reverse = True)
+                    best_hand_ranks.sort(reverse = True)
                     
                     best_hand_sorted = True
             
                     
-                current_hand_values.sort(reverse = True)
+                current_hand_ranks.sort(reverse = True)
                 
                 winning_players.append(current_position)
                 
@@ -841,19 +953,19 @@ class NLHoldemEngine:
                 
                 for comparision in comparisions:
                     
-                    winning_hand_values = comparision(best_hand_values, current_hand_values)
+                    winning_hand_ranks = comparision(best_hand_ranks, current_hand_ranks)
                     
                     
-                    if winning_hand_values == best_hand_values:
+                    if winning_hand_ranks == best_hand_ranks:
                     
                         winning_players.remove(current_position)
                         
                         break
                     
                     
-                    elif winning_hand_values == current_hand_values:
+                    elif winning_hand_ranks == current_hand_ranks:
                     
-                        best_hand_values = current_hand_values
+                        best_hand_ranks = current_hand_ranks
                         
                         best_hand_sorted = True
                         

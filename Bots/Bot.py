@@ -171,5 +171,6 @@ class TexasHoldemBot():
         self.river = 1
         
    
-    
+    def choose_action(self):
+        return self.AI.choose_action()
     
