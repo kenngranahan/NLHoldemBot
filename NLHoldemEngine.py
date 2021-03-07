@@ -60,7 +60,16 @@ class NLHoldemEngine:
         
     deal_river() : None
         deals the river
+  
+    get_flop() : list
+        returns the formatted flop cards 
+        
+    get_turn() : list
+        returns the formatted turn cards 
     
+    get_river() : list
+        returns the formatted river cards
+        
     reset_deck() : None
         reset self.deck
         
@@ -70,32 +79,14 @@ class NLHoldemEngine:
         
     
     
-    get_flop() : list
-        returns the formatted flop cards 
-        
-    get_turn() : list
-        returns the formatted turn cards 
-    
-    get_river() : list
-        returns the formatted river cards
-    
-    get_player_info() : dict
-        return a dict of dicts that stores the player information
-    
-    get_positions() : list
-        returns a list of positions for the game
-               
-    get_position_who_raised() : str
-        return the postion who raised. If no one has raise then is returns 'BB'
-    
-    get_amount_to_call() : float
-        returns the amount to needed to call. This does not include the amount already paid in by the current position
-    
     get_current_position() : str
         returns the current position
     
     set_current_position(position) : None
         set the current postion to position
+        
+    get_positions() : list
+        returns a list of positions in the game
     
     get_player(position) : str
         get the name of the player in position
@@ -103,20 +94,86 @@ class NLHoldemEngine:
     get_players() : list
         return the list of players in the game
     
-
+    
+    get_player_info() : dict
+        return a dict of dicts that stores the player information
+    
+    
+    
+               
+    get_position_who_raised() : str
+        return the postion who raised. If no one has raise then is returns 'BB'
+    
+    get_amount_to_call() : float
+        returns the amount to needed to call. This does not include the amount already paid in by the current position
+    
     all_folded() : bool
-        returns True if all of the players have folded,
-
-
+        returns True if all of the players have folded
+        
     get_pot() : float
-        return the pot size
+        returns the pot size
     
     get_BB() : float
-        return self.BB
+        returns the big blind
     
-    def get_SB(self):
-        return self.SB
+    get_SB(): float
+        returns the small blind
+        
+        
+        
+        
+    pay_in_blinds_and_deal() : None
+        pay in the blinds and deal pocket cards to each player. This should be called to start a new game
   
+    pay_out_winner_and_reset_table() : None
+        pay out to the winner and reset the table. This is called at the end of the game after a player has won
+    
+    set_play(play) : None
+        used to input the play made by the current player. The list of possible plays can be found in the .plays class 
+        attribute
+    
+    set_raise(amount_raised) : None
+        used to input the amount raised if the palyer chose raise as their play
+            
+    update_game_and_move_to_next_active_position() : bool
+        this is called after the current player has submitted their play. This method checks if the play submitted is valid.
+        If so, then the game state is updated. Returns True/False if the game state was update successfully.
+    
+    end_round_of_betting() : None
+        This method is called when the round of betting is over
+    
+    
+    
+    
+    best_hand(position) : (int, list)
+        returns the best 5 card hand of the player sitting in position. Returns a tuple of an int encoding the type of hand
+        and a list of cards in the best 5 card hand. The integers used to encode the hand type are corresponds to the mapping
+        given in the .hand_type class attribute
+    
+    get_best_hand(position) : list
+        returns the best formatted 5 card hand held by the player sitting in position 
+    
+    winning_set_of_cards(hand1, hand2, set_number) : list
+        Returns the hand with the winning set. Returns [] if it's a tie
+    
+    winning_two_pair(hand1, hand2) : list
+        Returns the hand with the winning two pair. Returns [] if it's a tie
+    
+    winning_high_card(hand1, hand2) : list
+        Returns the hand with the winning high card. Returns [] if it's a tie
+    
+    winning_straight(hand1, hand2): list
+       Returns the hand with the winning high card. Returns [] if it's a tie
+    
+    winning_flush(hand1, hand2): list
+        Returns the hand with the winning high card. Returns [] if it's a tie
+    
+    showdown() : None
+        Determines the winner if the game goes to showdown
+    
+    get_showdown_winner() : list / str
+        returns the best formatted 5 card hand held by the showdowns winner. If the result is a split pot then a list of winners
+        is returned
     
     """
     min_players = 2    

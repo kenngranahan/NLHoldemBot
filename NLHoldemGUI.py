@@ -8,14 +8,30 @@ Created on Wed Dec 30 18:00:58 2020
 import pygame, sys
 from pygame.locals import *
 
-size = 700,700
-card_scale = 0.1
-screen = pygame.display.set_mode(size, flags = pygame.RESIZABLE)
-
 
 class card(pygame.sprite.Sprite):
-    _, screen_height = screen.get_size()
+    """
+    Class used to reprsent card sprites
     
+    Methods
+    ----------------
+    rescale(scale_factor) : None
+        rescales the card size. the aspect ration is preserved
+        
+    flip() : None
+        the card image is flipped
+    
+    recenter((x, y)) : None
+        recenter the card on (x, y)
+    
+    get_image() : Surface
+        gets the image of the card. This is either the card front or card back depending depending if  hidden == True.
+        Call the flip() method to change
+    
+    is_hidden() : bool
+        returns a bool, depending if the card is hidden or not
+    
+    """    
     def __init__(self, front_image, back_image, hidden = True):
         pygame.sprite.Sprite.__init__(self)
         
@@ -48,16 +64,70 @@ class card(pygame.sprite.Sprite):
         
         
     def flip(self):
+        
         if self.hidden:
             self.image = self.card_front
+            self.hidden = False
+        
         else:
             self.image = self.card_back
+            self.hidden = True
+        
             
     def recenter(self,  pos):
         self.rect.center = pos
+        
+    def get_image(self):
+        return self.image
+    
+    def is_hidden(self):
+        return self.hidden
+
+
 
 
 class holdem_table(pygame.sprite.Sprite):
+    """
+    A class to represent of table for No Limit Texas Holdem. This class also repreents where players are seated at the table 
+    and where cards are dealt to.
+    
+    Methods
+    -----------------
+    
+    get_image() : Surface
+        returns the image of the poker table
+    
+    get_rect() : Rect
+        returns the rect of the poker table
+        
+    hand_centers(hand_number, hand_size) : ((x0, y0), (x1, y1))
+        returns the center of both cards held by the player sitting at the position indexed by hand_number
+        
+    player_title_rect(hand_number, card_size) : Rect
+        returns a rect for drawing the player's name sitting at the position indexed by hand_number
+    
+    #TODO update the method to remove card_size and scale
+    pot_rect(card_size, scale = 0.1) : Rect
+        returns a Rect for drawing the pot.The size is determined by card_size and scale 
+       
+    flop_center() : ((x0, y0), (x1, y1), (x2, y2))
+        returns the centers for the flop
+    
+    turn_center() : (x0, y0)
+        returns the center for the turn
+        
+    river_center() : (x0, y0)
+        returns the center for the turn
+     
+    rescale(scale) : None
+        rescales the poder table, preserves the aspect ratio 
+    
+    recenter((x, y)) : None
+        recenters the table on (x, y)
+            
+    
+    """
+    
     
     def __init__(self, image):
         pygame.sprite.Sprite.__init__(self)
@@ -77,7 +147,10 @@ class holdem_table(pygame.sprite.Sprite):
     
     
     def get_rect(self):
-        return
+        return self.rect
+    
+    def get_image(self):
+        return self.image
     
     def hand_centers(self, hand_number, card_size):
         
@@ -157,7 +230,7 @@ class holdem_table(pygame.sprite.Sprite):
         width, _ = card_size
         return (x + (self.card_spacing+width)*2, y)
     
-    #TODO: Add rescale function
+   
     def rescale(self, scale_factor):
         self.width *=  scale_factor
         self.height *=  scale_factor
@@ -173,6 +246,28 @@ class holdem_table(pygame.sprite.Sprite):
 
 
 class widget(pygame.sprite.Sprite):
+    
+    """
+    A class used to represent a widget.
+    
+    
+    Methods
+    ----------------------------
+    
+    rescale(scale_factor) : None 
+        rescales the widget, preserves the aspect ratio
+    
+    recenter((x, y)) : None
+        recenters the widget on (x, y)
+    
+    clicked(mouse_pos) : bool
+        returns True if the mouse clicked on the widget
+    
+    get_binding() :  str
+        returns the str binding to the widget
+        
+    
+    """
     
     def __init__(self, image, binding = None):
         pygame.sprite.Sprite.__init__(self)
@@ -213,6 +308,42 @@ class widget(pygame.sprite.Sprite):
 
 
 class text_input_box(pygame.sprite.Sprite):
+    
+    """
+    A Class used to represent a text box used to read string inputs from the user
+    
+    Methods
+    ---------------
+    
+    read_text(event) : None
+        reads text from the user based on the pygame.event module
+        
+    render_text() : Surface
+        renders the text on a surface
+    
+    clear_text() : None
+        clears the text stored in the text box
+    
+    get_text() : str
+        returns the text stored on the text box
+    
+    rescale(scale_factor) : None 
+        rescales the widget, preserves the aspect ratio
+    
+    recenter((x, y)) : None
+        recenters the widget on (x, y)
+        
+   is_active() :  bool
+       returns True if th etext box is active
+        
+    
+   set_active(active): None
+        set the text box as active         
+    
+    
+    
+    """
+    
     
     def __init__(self, xcenter, ycenter, w, h, font, text_color = (0,0,0), background_color = (255,255,255)):
         pygame.sprite.Sprite.__init__(self)
@@ -289,7 +420,7 @@ class text_input_box(pygame.sprite.Sprite):
     def recenter(self, pos):
         self.rect.center = pos
         
-    def get_active(self):
+    def is_active(self):
         return self.active
     
     def set_active(self, active):

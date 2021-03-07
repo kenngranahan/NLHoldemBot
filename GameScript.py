@@ -1,7 +1,9 @@
-from NLHoldemEngine import HLHoldemEngine
+from NLHoldemEngine import NLHoldemEngine
 from NLHoldemGUI import holdem_table, widget, card, text_input_box, player_ticket
 
 import pygame, sys
+
+from pygame.locals import *
 
 import yaml
 
@@ -12,11 +14,10 @@ with open('config/default/config.yaml') as file:
     
     config = yaml.load(file, Loader = yaml.FullLoader)
 
-    
-    
-screen_color = config['screen']['color']
 
-screen_size = config['screen']['size']
+players = ['player1', 'player2']
+
+buyins = [200, 200]
 
 
 
@@ -74,37 +75,102 @@ text_box_font_size = config['gameplay']['text_box_font_size']
 
 
 
-card_folder = config['gameplay']['card_folder']
+card_folder = config['game_sprites']['card_folder']
 
-card_file_extension = config['gameplay']['card_file_extension']
+card_file_extension = config['game_sprites']['card_file_extension']
 
-
-
-screen = pygame.display.set_mode(screen_size, flags = pygame.RESIZEABLE)
 
     
 call = widget(pygame.image.load(config['game_sprites']['call']), 'C')
 
 fold = widget(pygame.image.load(config['game_sprites']['fold']), 'F')
 
-2_bet = widget(pygame.image.load(config['game_sprites']['2_bet']), '2BB')
+twobet = widget(pygame.image.load(config['game_sprites']['2_bet']), '2BB')
 
-3_bet = widget(pygame.image.load(config['game_sprites']['3_bet']), '3BB')
+threebet = widget(pygame.image.load(config['game_sprites']['3_bet']), '3BB')
 
 _raise = widget(pygame.image.load(config['game_sprites']['raise']), 'R')
 
+widgets = [call, fold, twobet, threebet, _raise]
+
+
+    
+screen_color = config['screen']['color']
+
+screen_size = config['screen']['size']
+
+
+
+screen = pygame.display.set_mode(screen_size, flags = RESIZABLE)
+
+screen.fill(screen_color)
+
 poker_table = holdem_table(pygame.image.load(config['game_sprites']['table']))
 
+poker_table.recenter(screen.get_rect().center)
+
+screen.blit(poker_table.get_image(), poker_table.get_rect())
 
 
 
+GameEngine = NLHoldemEngine(players = players, buyins = buyins, max_buyin = 400, min_buyin = 50, BB = 2)
+
+running = True
+
+hands_have_not_been_dealt = True
+
+screen_updating = False
+
+while running:
+    
+    for event in pygame.event.get():
+         
+        if event.type == pygame.QUIT:
+            pygame.quit()
 
 
+    if hands_have_not_been_dealt:
+        
+        hands_have_not_been_dealt = False
+        
+        GameEngine.pay_in_blinds_and_deal()
+        
+        player_info = GameEngine.get_player_info()
+                
+        hands_dealt_sprite = {}
 
-
-
-
-
+        for idx, position in enumerate(GameEngine.get_positions()):
+        
+            
+            hand_dealt = player_info[position]['hand']
+            
+            sprites = pygame.sprite.Group()
+            
+            center0, center1 = poker_table.hand_centers(idx, card_size)
+        
+            for card_dealt in hand_dealt:
+                
+                card_sprite = card(pygame.image.load(card_folder+card_dealt+card_file_extension), 
+                                   pygame.image.load(card_folder + 'card_back' + card_file_extension))
+                
+                sprites.add(card_sprite)
+        
+            
+            hands_dealt_sprites[position] = sprites                
+        
+        
+        
+    if not(screen_updating()):
+        
+        
+        for position in GameEngine.get_positions():
+            
+            hands_dealt_sprites[position].draw()
+                
+                
+            
+        
+    pygame.display.flip()
 
 
 
