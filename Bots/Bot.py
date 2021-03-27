@@ -133,6 +133,9 @@ class TexasHoldemBot():
     
     def set_stakes(self, stakes):
         self.stakes = stakes
+        
+    def set_positions(self, positions):
+        self.positions = self.encode_positions(positions)
     
     
     def set_player_active(self, player_active):
@@ -169,7 +172,7 @@ class TexasHoldemBot():
         self.flop = 0
         self.turn = 0
         self.river = 1
-        
+                
    
     def choose_action(self):
         return self.AI.choose_action()

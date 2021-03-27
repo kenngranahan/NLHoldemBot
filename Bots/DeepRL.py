@@ -159,7 +159,7 @@ class DQN():
         
         except OSError as err:
             
-            print("OS Error: {0}".format(err))
+            print("OS Error: {}".format(err))
             print('Attempting to write to DQN_prediction_network.pt')
             
             try:

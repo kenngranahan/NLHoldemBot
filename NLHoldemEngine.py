@@ -87,6 +87,9 @@ class NLHoldemEngine:
         
     get_positions() : list
         returns a list of positions in the game
+        
+    get_order_of_play(self) : list
+        return a list of positions arranged in order of play
     
     get_player(position) : str
         get the name of the player in position
@@ -330,31 +333,39 @@ class NLHoldemEngine:
     
     
     def get_flop(self):
-        return self.formatted_cards(self.flop)
+        return self.flop
     
     def get_turn(self):
-        return self.formatted_cards(self.turn)
+        return self.turn
     
     def get_river(self):
-        return self.formatted_cards(self.river)
+        return self.river
        
             
        
         
        
-    def get_player_info(self):
-    
-        dict_deepcopy = copy.deepcopy(self.table)
-        
-        for key in self.table.keys():
-        
-            dict_deepcopy[key]['hand'] = self.formatted_cards(self.table[key]['hand'])
-        
-        return dict_deepcopy        
+    def get_player_info(self):        
+        return self.table
 
 
     def get_positions(self):
         return self.positions
+    
+    
+    def get_order_of_play(self):
+        
+        order_of_play = NLHoldemEngine.play_order
+        
+        for position in order_of_play:
+            
+            if position not in self.positions:
+                
+                order_of_play.remove(position)
+            
+        return order_of_play
+        
+        
         
     def get_position_who_raised(self):
         return self.position_who_raised
