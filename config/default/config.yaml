@@ -6,41 +6,41 @@ game_sprites:
   card_folder: custom_cards/
   fold: widgets/Fold.jpeg
   raise: widgets/Raise.jpeg
-  table: table.jpeg
+  table: table/table.jpeg
 gameplay:
   active_player_fill_color: &id001 !!python/tuple
   - 255
   - 255
   - 255
-  active_player_font: Comic Sans MS
+  active_player_font: comic
   active_player_font_color: &id002 !!python/tuple
   - 0
   - 0
   - 0
   active_player_font_size: 12
   current_player_fill_color: *id001
-  current_player_font: Comic Sans MS
-  current_player_font_color: !!python/tuple
+  current_player_font: comic
+  current_player_font_color: &id004 !!python/tuple
   - 255
   - 0
   - 0
   current_player_font_size: 12
   folded_player_fill_color: *id001
-  folded_player_font: Comic Sans MS
+  folded_player_font: comic
   folded_player_font_color: &id003 !!python/tuple
   - 128
   - 128
   - 128
   folded_player_font_size: 12
   pot_fill_color: *id002
-  pot_font: Comic Sans MS
+  pot_font: comic
   pot_font_color: *id001
   pot_font_size: 12
   text_box_center: !!python/tuple
   - 200
   - 300
   text_box_fill_color: *id003
-  text_box_font: Comic Sans MS
+  text_box_font: comic
   text_box_font_color: *id002
   text_box_font_size: 12
   text_box_size: !!python/tuple
@@ -53,18 +53,18 @@ screen:
   - 800
 ticket:
   player_fill_color: *id003
-  player_font: Comic Sans MS
-  player_font_color: *id001
+  player_font: comic
+  player_font_color: *id002
   player_font_size: 12
   position_fill_color: *id003
-  position_font: Comic Sans MS
-  position_font_color: *id001
+  position_font: comic
+  position_font_color: *id002
   position_font_size: 12
-  stack_fill_color: *id003
-  stack_font: Comic Sans MS
-  stack_font_color: *id001
+  stack_fill_color: *id004
+  stack_font: comic
+  stack_font_color: *id002
   stack_font_size: 12
-  status_fill_color: *id003
-  status_font: Comic Sans MS
-  status_font_color: *id001
+  status_fill_color: *id004
+  status_font: comic
+  status_font_color: *id002
   status_font_size: 12

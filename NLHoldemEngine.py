@@ -110,8 +110,14 @@ class NLHoldemEngine:
     get_amount_to_call() : float
         returns the amount to needed to call. This does not include the amount already paid in by the current position
     
+    get_current_play() : None
+        get the current play
+    
     all_folded() : bool
         returns True if all of the players have folded
+        
+    has_folded(position): bool
+        returns Ture if the position has folded
         
     get_pot() : float
         returns the pot size
@@ -174,9 +180,8 @@ class NLHoldemEngine:
     showdown() : None
         Determines the winner if the game goes to showdown
     
-    get_showdown_winner() : list / str
-        returns the best formatted 5 card hand held by the showdowns winner. If the result is a split pot then a list of winners
-        is returned
+    get_showdown_winners() : list
+        returns a list of the showdown winners
     
     """
     min_players = 2    
@@ -206,14 +211,14 @@ class NLHoldemEngine:
 
         
         #Assign the player names, stacks and deck
-        self.player_names = players
+        self.players = players
         self.stacks = buyins
         self.max_buyin = max_buyin
         self.min_buyin = min_buyin
         
         #Encode the deck as a list of tuples
-        self.deck_ranks = range(NLHoldemEngine.max_rank+1)
-        self.deck_suits = range(4)
+        self.deck_ranks = list(range(NLHoldemEngine.max_rank+1))
+        self.deck_suits = list(range(4))
         self.deck = [(rank, suit) for rank in self.deck_ranks for suit in self.deck_suits]
         
         
@@ -265,7 +270,7 @@ class NLHoldemEngine:
         # 'in play': bool}   bool to flag if a player has folded
         
         self.table = {}
-        for position, stack, player in zip(self.positions,self.stacks,self.player_names):
+        for position, stack, player in zip(self.positions,self.stacks,self.players):
             self.table[position] = {'stack': stack, 'player': player,\
                                   'hand': [], 'stake': 0, 'in play': True}
         
@@ -380,6 +385,9 @@ class NLHoldemEngine:
         self.current_position = position
         while next(self.rotation_iter) != position:
             continue
+        
+    def get_current_play(self):
+        return self.current_play
     
     def get_player(self, position):
         player = self.table[position]['player']
@@ -399,6 +407,10 @@ class NLHoldemEngine:
 
         return (total == 1)        
   
+    
+    def has_folded(self, position):
+        return not(self.table[position]['in play'])
+
 
     def get_pot(self):
         return self.pot
@@ -443,9 +455,19 @@ class NLHoldemEngine:
         
     def pay_out_winner_and_reset_table(self):
         
-        for winner in self.showdown_winner:
-
-            self.table[winner]['stack'] += self.pot/len(self.showdown_winner)
+        
+        if self.showdown_winner == []:
+            
+            for position in self.positions:
+                
+                if self.table[position]['in play']:
+                    
+                    self.table[position]['stack'] += self.pot
+        
+        else:
+            for winner in self.showdown_winner:
+    
+                self.table[winner]['stack'] += self.pot/len(self.showdown_winner)
 
     
         for pos in self.positions:
@@ -632,11 +654,10 @@ class NLHoldemEngine:
             
             
             
-            
             if max_suit_count < 5:
                 
                 #Create a list of numbers [12,.., ] sorted descending
-                decending_number_list = list(max_rank+1)
+                decending_number_list = list(range(max_rank + 1))
                 decending_number_list.reverse()
                 
                 #Create a list of card ranks(e.g. 'J' has a rank of 11) sorted 
@@ -731,7 +752,7 @@ class NLHoldemEngine:
                             
                             if hand_identifer == 1:
                             
-                                best_hand_ranks = ranks_in_hand[0] + ranks_in_hand[idx+1:idx+5]
+                                best_hand_ranks = [ranks_in_hand[0]] + ranks_in_hand[idx+1:idx+5]
                                 break
                             
                                 
@@ -794,7 +815,7 @@ class NLHoldemEngine:
                         
                         if hand_identifer == 1:
                         
-                            best_hand_ranks = ranks_in_hand[0] + ranks_in_hand[idx+1:idx+5]
+                            best_hand_ranks = [ranks_in_hand[0]] + ranks_in_hand[idx+1:idx+5]
                             break
                         
 
@@ -819,7 +840,7 @@ class NLHoldemEngine:
                 
             #Map the hand_type using characeristics of the hand determined during
             #run time
-            hand_type = hand_mapping[(max_rank_count, max_suit_count>=5, hand_identifer)]    
+            hand_type = hand_mapping[(max_rank_count, int(max_suit_count>=5), hand_identifer)]    
             
             #Done
             return (hand_type, final_hand)
@@ -1066,6 +1087,6 @@ class NLHoldemEngine:
         return best_hand_type_mapped, formatted_best_hand
         
     
-    def get_showdown_winner(self):
+    def get_showdown_winners(self):
         return self.showdown_winner
         

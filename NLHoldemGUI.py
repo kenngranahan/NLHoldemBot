@@ -30,6 +30,9 @@ class card(pygame.sprite.Sprite):
     
     is_hidden() : bool
         returns a bool, depending if the card is hidden or not
+        
+    get_size() : (width, height)
+        returns the size of the card
     
     """    
     def __init__(self, front_image, back_image, hidden = True):
@@ -83,6 +86,8 @@ class card(pygame.sprite.Sprite):
     def is_hidden(self):
         return self.hidden
 
+    def get_size(self):
+        return self.card_size
 
 
 
@@ -100,7 +105,7 @@ class holdem_table(pygame.sprite.Sprite):
     get_rect() : Rect
         returns the rect of the poker table
         
-    hand_centers(hand_number, hand_size) : ((x0, y0), (x1, y1))
+    hand_centers(hand_number, card_size) : ((x0, y0), (x1, y1))
         returns the center of both cards held by the player sitting at the position indexed by hand_number
         
     player_title_rect(hand_number, card_size) : Rect
@@ -266,6 +271,8 @@ class widget(pygame.sprite.Sprite):
     get_binding() :  str
         returns the str binding to the widget
         
+    get_image() : Surface
+        returns the image of the widget
     
     """
     
@@ -281,12 +288,14 @@ class widget(pygame.sprite.Sprite):
     
         
     def rescale(self, scale_factor):
+    
         self.width *=  scale_factor 
         self.height *=  scale_factor
         
         self.size = (int(self.width), int(self.height))
-        self.image = pygame.transform.scale(self.image, self.size)
         
+        self.image = pygame.transform.scale(self.image, self.size)
+         
         self.rect = self.image.get_rect()
         
     def recenter(self, pos):
@@ -302,6 +311,11 @@ class widget(pygame.sprite.Sprite):
         else:
             return False
     
+    def get_image(self):
+        return self.image
+
+    def get_rect(self):
+        return self.rect
 
     def get_binding(self):
         return self.binding
@@ -429,6 +443,30 @@ class text_input_box(pygame.sprite.Sprite):
         
         
 class player_ticket(pygame.sprite.Group):
+    """
+    A Class for displaying player information
+    
+    Methods
+    ---------------
+    
+    set_position(position) : None
+        set the position to be displayed on the ticket
+        
+    set_stack(stack) : None
+        set the stack to be displayed on the ticket
+        
+    set_status(starus) : None
+        set the status to be displayed on the ticket
+    
+    recenter((xcenter, ycenter)) : None
+        recenter the ticket
+    
+    draw(surface) : None
+        draw the ticket onto the surface
+    
+    
+    """
+    
     
     def __init__(self, player_name, w, h, fonts, text_colors, background_colors):
         pygame.sprite.Group.__init__(self)
@@ -480,44 +518,44 @@ class player_ticket(pygame.sprite.Group):
         
         
     def recenter(self, xcenter, ycenter):
+        
         self.position_rect.center = (xcenter - self.width/2, ycenter-self.height/4)
+        
         self.player_rect.center = (xcenter - self.width/2, ycenter + self.height/4)
+        
         self.stack_rect.center = (xcenter + 1.1*self.width/2, ycenter - 0.45*self.height/2)
+        
         self.status_rect.center = (xcenter + 1.1*self.width/2, ycenter + 0.45*self.height/2)
         
     
-
-    def draw(self, surface):
+    def get_player_surface(self):
+        return self.player_surface
+    
+    def get_player_rect(self):
+        return self.player_rect
+    
+    
+    def get_position_surface(self):
+        return self.position_surface
+    
+    def get_position_rect(self):
+        return self.position_rect
+    
+    
+    def get_stack_surface(self):
+        return self.stack_surface
+    
+    def get_stack_rect(self):
+        return self.stack_rect
+    
+    
+    def get_status_surface(self):
+        return self.status_surface
+    
+    def get_status_rect(self):
+        return self.status_rect
         
-        
-        self.player_surface.blit(self.player_characters, self.player_surface.get_rect())
-        
-        
-        if self.position_characters is not None:
-        
-            self.position_surface.blit(self.position_characters, self.position_surface.get_rect())
-        
-        
-        if self.stack_characters is not None:
-            
-            self.stack_surface.blit(self.stack_characters, self.stack_surface.get_rect())
-
-        
-        if self.status_characters is not None:
-        
-            self.status_surface.blit(self.status_characters, self.status_surface.get_rect())
-             
-        
-        surface.blit(self.player_surface, self.player_rect)
-        
-        surface.blit(self.position_surface, self.position_rect)
-        
-        surface.blit(self.stack_surface, self.stack_rect)
-        
-        surface.blit(self.status_surface, self.status_rect)
-        
-        
-        
+    
         
         
         

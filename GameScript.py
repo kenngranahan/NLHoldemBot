@@ -20,6 +20,10 @@ players = ['player1', 'player2']
 buyins = [200, 200]
 
 
+card_scale = 0.1
+
+table_scale = 0.4
+
 
 active_player_fill_color = config['gameplay']['active_player_fill_color']
 
@@ -74,13 +78,99 @@ text_box_font_color = config['gameplay']['text_box_font_color']
 text_box_font_size = config['gameplay']['text_box_font_size']
 
 
+ticket_player_fill_color = config['ticket']['player_fill_color']
+
+ticket_player_font_color = config['ticket']['player_font_color']
+
+ticket_player_font = config['ticket']['player_font']
+
+ticket_player_font_size = config['ticket']['player_font_size']
+
+
+ticket_position_fill_color = config['ticket']['position_fill_color']
+
+ticket_position_font_color = config['ticket']['position_font_color']
+
+ticket_position_font = config['ticket']['position_font']
+
+ticket_position_font_size = config['ticket']['position_font_size']
+
+
+ticket_stack_fill_color = config['ticket']['stack_fill_color']
+
+ticket_stack_font_color = config['ticket']['stack_font_color']
+
+ticket_stack_font = config['ticket']['stack_font']
+
+ticket_stack_font_size = config['ticket']['stack_font_size']
+
+
+ticket_status_fill_color = config['ticket']['status_fill_color']
+
+ticket_status_font_color = config['ticket']['status_font_color']
+
+ticket_status_font = config['ticket']['status_font']
+
+ticket_status_font_size = config['ticket']['status_font_size']
+
+
+ticket_player_font = pygame.font.Font('fonts/' + ticket_player_font + '.ttf', ticket_player_font_size)
+
+ticket_stack_font = pygame.font.Font('fonts/' + ticket_stack_font + '.ttf', ticket_stack_font_size)
+
+ticket_status_font = pygame.font.Font('fonts/' + ticket_status_font + '.ttf', ticket_status_font_size)
+
+ticket_position_font = pygame.font.Font('fonts/' + ticket_position_font + '.ttf', ticket_position_font_size)
+
+
+active_player_font = pygame.font.Font('fonts/' + active_player_font + '.ttf', active_player_font_size)
+
+current_player_font = pygame.font.Font('fonts/' + current_player_font + '.ttf',current_player_font_size)
+
+folded_player_font = pygame.font.Font('fonts/' + folded_player_font + '.ttf', folded_player_font_size)
+
+text_box_font = pygame.font.Font('fonts/' + text_box_font + '.ttf', text_box_font_size)
+
+
+
+player_fill_color = {'active': active_player_fill_color,
+                     'current': current_player_fill_color,
+                     'folded': folded_player_fill_color}
+
+
+player_font = {'active': active_player_font,
+               'current': current_player_font,
+               'folded': folded_player_font}
+
+
+player_font_color = {'active': active_player_font_color,
+                     'current': current_player_font_color,
+                     'folded': folded_player_font_color}
+
+
+ticket_font_color = {'position':ticket_position_font_color,
+                     'status': ticket_status_font_color,
+                     'stack': ticket_stack_font_color,
+                     'player': ticket_player_font_color}
+
+
+ticket_font = {'position': ticket_position_font,
+               'status': ticket_status_font,
+               'stack': ticket_stack_font,
+               'player': ticket_player_font}
+
+
+ticket_fill_color = {'position': ticket_position_fill_color,
+                     'status': ticket_status_fill_color,
+                     'stack': ticket_stack_fill_color,
+                     'player': ticket_player_fill_color}
+
 
 card_folder = config['game_sprites']['card_folder']
 
 card_file_extension = config['game_sprites']['card_file_extension']
 
 
-    
 call = widget(pygame.image.load(config['game_sprites']['call']), 'C')
 
 fold = widget(pygame.image.load(config['game_sprites']['fold']), 'F')
@@ -89,9 +179,9 @@ twobet = widget(pygame.image.load(config['game_sprites']['2_bet']), '2BB')
 
 threebet = widget(pygame.image.load(config['game_sprites']['3_bet']), '3BB')
 
-_raise = widget(pygame.image.load(config['game_sprites']['raise']), 'R')
+raise_ = widget(pygame.image.load(config['game_sprites']['raise']), 'R')
 
-widgets = [call, fold, twobet, threebet, _raise]
+widgets = [call, fold, twobet, threebet, raise_]
 
 
     
@@ -99,6 +189,22 @@ screen_color = config['screen']['color']
 
 screen_size = config['screen']['size']
 
+
+screen_width, _ = screen_size
+
+for widget in widgets:
+    
+    scale_factor = screen_width/widget.get_image().get_width()
+    
+    widget.rescale(scale_factor/len(widgets))
+    
+    
+widget_width, widget_height = widgets[0].get_image().get_size()
+    
+for idx, widget in enumerate(widgets):
+
+    widget.recenter((widget_width*(idx + 1/2), widget_height/2))
+    
 
 
 screen = pygame.display.set_mode(screen_size, flags = RESIZABLE)
@@ -115,19 +221,78 @@ screen.blit(poker_table.get_image(), poker_table.get_rect())
 
 GameEngine = NLHoldemEngine(players = players, buyins = buyins, max_buyin = 400, min_buyin = 50, BB = 2)
 
+community_cards = pygame.sprite.Group()
+
+tickets = pygame.sprite.Group()
+
+
+player_info = GameEngine.get_player_info()
+
+for idx, position in enumerate(GameEngine.get_positions()):
+
+    
+    player = player_info[position]['player']
+    
+    stack = str(player_info[position]['stack'])
+    
+    status = str(player_info[position]['stake'])
+    
+    
+    ticket = player_ticket(player, 50, 75, ticket_font, ticket_font_color, ticket_fill_color)
+    
+    ticket.set_stack(stack)
+    
+    ticket.set_position(position)
+    
+    ticket.set_status(status)
+    
+    
+    ticket.recenter(200, 100*idx)
+    
+    tickets.add(ticket)
+
+
+
+
 running = True
+
+redraw_screen = True
+
 
 hands_have_not_been_dealt = True
 
-screen_updating = False
+play_selected_was_valid = True
+
+play_selected = None
+
+deal_community_cards = False
+
+showdown = False
+
+position_to_end_the_round_of_betting = 'SB'
+
 
 while running:
+    
     
     for event in pygame.event.get():
          
         if event.type == pygame.QUIT:
+            
+            running = False
+            
             pygame.quit()
-
+        
+            
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            
+            for widget in widgets:
+                
+                if widget.clicked(pygame.mouse.get_pos()):
+                    
+                    play_selected = widget.get_binding()
+                                  
+        
 
     if hands_have_not_been_dealt:
         
@@ -137,40 +302,248 @@ while running:
         
         player_info = GameEngine.get_player_info()
                 
-        hands_dealt_sprite = {}
+        hand_dealt_sprites = {}
+
 
         for idx, position in enumerate(GameEngine.get_positions()):
+            
+            hand_dealt = GameEngine.formatted_cards(player_info[position]['hand'])
+            
+            hand_sprites = pygame.sprite.Group()
         
-            
-            hand_dealt = player_info[position]['hand']
-            
-            sprites = pygame.sprite.Group()
-            
-            center0, center1 = poker_table.hand_centers(idx, card_size)
         
             for card_dealt in hand_dealt:
                 
-                card_sprite = card(pygame.image.load(card_folder+card_dealt+card_file_extension), 
+                card_sprite = card(pygame.image.load(card_folder + card_dealt + card_file_extension), 
                                    pygame.image.load(card_folder + 'card_back' + card_file_extension))
                 
-                sprites.add(card_sprite)
+                card_sprite.rescale(card_scale)
+                                
+                hand_sprites.add(card_sprite)
+        
+        
+            card_size = hand_sprites.sprites()[0].get_size()            
+        
+            center0, center1 = poker_table.hand_centers(idx, card_size)
+        
+            hand_sprites.sprites()[0].recenter(center0)
+            
+            hand_sprites.sprites()[1].recenter(center1)
+        
+            hand_dealt_sprites[position] = hand_sprites               
+    
+    
+    
+    if play_selected is not(None):
+        
+        GameEngine.set_play(play_selected)
+        
+        play_selected = None
+        
+        play_selected_was_valid = GameEngine.update_game_and_move_to_next_active_position()
+    
+        
+        if play_selected_was_valid:
+            
+            if GameEngine.get_current_play() == 'R':
+                
+                position_to_end_the_round_of_betting = GameEngine.get_position_who_raised()
+            
+            
+            elif GameEngine.all_folded():
+                
+                GameEngine.pay_out_winner_and_reset_table()
+                
+            elif GameEngine.get_current_position() == position_to_end_the_round_of_betting:
+                
+                GameEngine.end_round_of_betting()
+                
+                if len(community_cards) != 5:
+                    
+                    deal_community_cards = True
+                
+                else:
+                
+                    showdown = True
+            
+            
+            redraw_screen = True
+        
+        
+    
+    if deal_community_cards:
+        
+        deal_community_cards = False
+        
+        if len(community_cards) == 0:
+            
+            GameEngine.deal_flop()
+            
+            cards_dealt = GameEngine.get_flop()
+                 
+            cards_dealt = GameEngine.formatted_cards(cards_dealt)
         
             
-            hands_dealt_sprites[position] = sprites                
+            for card_dealt in cards_dealt:
+                    
+                    card_sprite = card(pygame.image.load(card_folder + card_dealt + card_file_extension), 
+                                       pygame.image.load(card_folder + 'card_back' + card_file_extension), hidden = False)
+                    
+                    card_sprite.rescale(card_scale)
+                                    
+                    community_cards.add(card_sprite)
+            
+            
+            card_size = community_cards.sprites()[0].get_size()            
+            
+            center0, center1, center2 = poker_table.flop_center(card_size)
+        
+                
+            community_cards.sprites()[0].recenter(center0)
+            
+            community_cards.sprites()[1].recenter(center1)
+        
+            community_cards.sprites()[2].recenter(center2)
+        
+ 
+        elif len(community_cards) == 3:
+            
+            GameEngine.deal_turn()
+            
+            cards_dealt = GameEngine.get_turn()
+            
+            cards_dealt = GameEngine.formatted_cards(cards_dealt)
+        
+            for card_dealt in cards_dealt:
+                    
+                card_sprite = card(pygame.image.load(card_folder + card_dealt + card_file_extension), 
+                                   pygame.image.load(card_folder + 'card_back' + card_file_extension), hidden = False)
+                
+            card_sprite.rescale(card_scale)
+                            
+            community_cards.add(card_sprite)
+    
+            card_size = community_cards.sprites()[0].get_size()            
+            
+            center = poker_table.turn_center(card_size)
+        
+            community_cards.sprites()[3].recenter(center)
+
+        
+        else:
+            
+            GameEngine.deal_river()
+            
+            cards_dealt = GameEngine.get_river()
+            
+            cards_dealt = GameEngine.formatted_cards(cards_dealt)
+        
+            for card_dealt in cards_dealt:
+                
+                card_sprite = card(pygame.image.load(card_folder + card_dealt + card_file_extension), 
+                                   pygame.image.load(card_folder + 'card_back' + card_file_extension), hidden = False)
+                
+            card_sprite.rescale(card_scale)
+                            
+            community_cards.add(card_sprite)
+    
+            card_size = community_cards.sprites()[0].get_size()            
+            
+            center = poker_table.river_center(card_size)
+        
+            community_cards.sprites()[4].recenter(center)
+
+
+    if showdown:
+        
+        showdown = False
+        
+        GameEngine.showdown()
+        
+        for position in GameEngine.get_positions():
+            
+            if not(GameEngine.has_folded(position)):
+                
+                for card_sprite in hand_dealt_sprites[position]:
+                    
+                    card_sprite.flip()
+        
+        GameEngine.pay_out_winner_and_reset_table()
+        
+    
+    
+        
+    if redraw_screen:
+        
+        redraw_screen = False
+        
+        screen.blit(poker_table.get_image(), poker_table.get_rect())
         
         
+        for idx, position in enumerate(GameEngine.get_positions()):
+            
+            
+            player = GameEngine.get_player(position)
+            
+            player_rect = poker_table.player_title_rect(idx, card_size)
+            
+            
+            if position == GameEngine.get_current_position():
+                
+                player_status = 'current'
+            
+            elif GameEngine.has_folded(position):
+                
+                player_status = 'folded'   
+                
+            else:
+                
+                player_status = 'active'
+            
+            if showdown and (position in GameEngine.get_showdown_winners()):
+                 
+                player_status = 'current'
+                
         
-    if not(screen_updating()):
+            fill_color = player_fill_color[player_status]
+            
+            font = player_font[player_status]
+            
+            font_color = player_font_color[player_status]
+        
+            
+            player_name = font.render(player, True, font_color, fill_color)
+            
+            screen.blit(player_name, player_rect)
         
         
         for position in GameEngine.get_positions():
             
-            hands_dealt_sprites[position].draw()
+            hand_dealt_sprites[position].draw(screen)
                 
-                
+             
+        for widget in widgets:
             
+            screen.blit(widget.get_image(), widget.get_rect())
         
-    pygame.display.flip()
+        
+        for ticket in tickets.sprites():
+            
+            screen.blit(ticket.get_player_surface(), ticket.get_player_rect())
+            
+            screen.blit(ticket.get_position_surface(), ticket.get_position_rect())
+            
+            screen.blit(ticket.get_status_surface(), ticket.get_status_rect())
+            
+            screen.blit(ticket.get_stack_surface(), ticket.get_stack_rect())
+        
+        
+        if len(community_cards) != 0:
+            
+            community_cards.draw(screen)
+        
+        
+        pygame.display.flip()
 
 
 
