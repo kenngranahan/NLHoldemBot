@@ -25,6 +25,15 @@ card_scale = 0.1
 table_scale = 0.4
 
 
+  
+screen_color = config['screen']['color']
+
+screen_size = config['screen']['size']
+
+screen_width, screen_height = screen_size
+
+
+
 active_player_fill_color = config['gameplay']['active_player_fill_color']
 
 active_player_font = config['gameplay']['active_player_font']
@@ -78,6 +87,7 @@ text_box_font_color = config['gameplay']['text_box_font_color']
 text_box_font_size = config['gameplay']['text_box_font_size']
 
 
+
 ticket_player_fill_color = config['ticket']['player_fill_color']
 
 ticket_player_font_color = config['ticket']['player_font_color']
@@ -85,6 +95,7 @@ ticket_player_font_color = config['ticket']['player_font_color']
 ticket_player_font = config['ticket']['player_font']
 
 ticket_player_font_size = config['ticket']['player_font_size']
+
 
 
 ticket_position_fill_color = config['ticket']['position_fill_color']
@@ -96,6 +107,7 @@ ticket_position_font = config['ticket']['position_font']
 ticket_position_font_size = config['ticket']['position_font_size']
 
 
+
 ticket_stack_fill_color = config['ticket']['stack_fill_color']
 
 ticket_stack_font_color = config['ticket']['stack_font_color']
@@ -103,6 +115,7 @@ ticket_stack_font_color = config['ticket']['stack_font_color']
 ticket_stack_font = config['ticket']['stack_font']
 
 ticket_stack_font_size = config['ticket']['stack_font_size']
+
 
 
 ticket_status_fill_color = config['ticket']['status_fill_color']
@@ -114,6 +127,19 @@ ticket_status_font = config['ticket']['status_font']
 ticket_status_font_size = config['ticket']['status_font_size']
 
 
+
+ticket_width = screen_width * config['ticket']['ticket_width']
+
+ticket_height = screen_height * config['ticket']['ticket_height']
+
+ticket_spacing = screen_height * config['ticket']['ticket_spacing']
+
+ticket_top_margin = screen_height * config['ticket']['ticket_top_margin']
+
+ticket_left_margin = screen_width * config['ticket']['ticket_left_margin']
+
+
+
 ticket_player_font = pygame.font.Font('fonts/' + ticket_player_font + '.ttf', ticket_player_font_size)
 
 ticket_stack_font = pygame.font.Font('fonts/' + ticket_stack_font + '.ttf', ticket_stack_font_size)
@@ -121,6 +147,7 @@ ticket_stack_font = pygame.font.Font('fonts/' + ticket_stack_font + '.ttf', tick
 ticket_status_font = pygame.font.Font('fonts/' + ticket_status_font + '.ttf', ticket_status_font_size)
 
 ticket_position_font = pygame.font.Font('fonts/' + ticket_position_font + '.ttf', ticket_position_font_size)
+
 
 
 active_player_font = pygame.font.Font('fonts/' + active_player_font + '.ttf', active_player_font_size)
@@ -171,6 +198,7 @@ card_folder = config['game_sprites']['card_folder']
 card_file_extension = config['game_sprites']['card_file_extension']
 
 
+
 call = widget(pygame.image.load(config['game_sprites']['call']), 'C')
 
 fold = widget(pygame.image.load(config['game_sprites']['fold']), 'F')
@@ -184,13 +212,7 @@ raise_ = widget(pygame.image.load(config['game_sprites']['raise']), 'R')
 widgets = [call, fold, twobet, threebet, raise_]
 
 
-    
-screen_color = config['screen']['color']
-
-screen_size = config['screen']['size']
-
-
-screen_width, _ = screen_size
+  
 
 for widget in widgets:
     
@@ -218,13 +240,14 @@ poker_table.recenter(screen.get_rect().center)
 screen.blit(poker_table.get_image(), poker_table.get_rect())
 
 
+text_box = text_input_box(600, 100, 20, 20, text_box_font)
+
 
 GameEngine = NLHoldemEngine(players = players, buyins = buyins, max_buyin = 400, min_buyin = 50, BB = 2)
 
 community_cards = pygame.sprite.Group()
 
-tickets = pygame.sprite.Group()
-
+tickets = {}
 
 player_info = GameEngine.get_player_info()
 
@@ -238,7 +261,7 @@ for idx, position in enumerate(GameEngine.get_positions()):
     status = str(player_info[position]['stake'])
     
     
-    ticket = player_ticket(player, 50, 75, ticket_font, ticket_font_color, ticket_fill_color)
+    ticket = player_ticket(player, ticket_width, ticket_height, ticket_font, ticket_font_color, ticket_fill_color)
     
     ticket.set_stack(stack)
     
@@ -247,9 +270,9 @@ for idx, position in enumerate(GameEngine.get_positions()):
     ticket.set_status(status)
     
     
-    ticket.recenter(200, 100*idx)
+    ticket.recenter(ticket_left_margin + ticket_width, ticket_top_margin + (ticket_spacing + ticket_height/2)*(1 + idx))
     
-    tickets.add(ticket)
+    tickets[player] = ticket
 
 
 
@@ -268,6 +291,8 @@ play_selected = None
 deal_community_cards = False
 
 showdown = False
+
+winner_decided = False
 
 position_to_end_the_round_of_betting = 'SB'
 
@@ -291,8 +316,14 @@ while running:
                 if widget.clicked(pygame.mouse.get_pos()):
                     
                     play_selected = widget.get_binding()
-                                  
+                    
+                    if play_selected == 'R':
+                    
+                        text_box.set_active(True)
         
+                        text_box.read_text(event)
+                        
+                      
 
     if hands_have_not_been_dealt:
         
@@ -334,6 +365,9 @@ while running:
     
     
     
+        
+        
+    
     if play_selected is not(None):
         
         GameEngine.set_play(play_selected)
@@ -368,6 +402,7 @@ while running:
             
             
             redraw_screen = True
+        
         
         
     
@@ -454,6 +489,15 @@ while running:
             community_cards.sprites()[4].recenter(center)
 
 
+
+    if winner_decided:
+        
+        winner_decided = False
+        
+        GameEngine.pay_out_winner_and_reset_table()
+        
+
+
     if showdown:
         
         showdown = False
@@ -467,11 +511,11 @@ while running:
                 for card_sprite in hand_dealt_sprites[position]:
                     
                     card_sprite.flip()
-        
-        GameEngine.pay_out_winner_and_reset_table()
-        
+
+        winner_decided = True
     
-    
+
+
         
     if redraw_screen:
         
@@ -500,9 +544,12 @@ while running:
                 
                 player_status = 'active'
             
-            if showdown and (position in GameEngine.get_showdown_winners()):
-                 
-                player_status = 'current'
+            
+            if winner_decided:
+                
+                if position in GameEngine.get_showdown_winners():
+                    
+                    player_status = 'current'
                 
         
             fill_color = player_fill_color[player_status]
@@ -527,7 +574,27 @@ while running:
             screen.blit(widget.get_image(), widget.get_rect())
         
         
-        for ticket in tickets.sprites():
+        
+        player_info = GameEngine.get_player_info()
+        
+        for position in GameEngine.get_positions():
+            
+            
+            player = player_info[position]['player']
+    
+            stack = str(player_info[position]['stack'])
+    
+            status = str(player_info[position]['stake'])
+    
+    
+            ticket = tickets[player]        
+    
+            ticket.set_stack(stack)
+    
+            ticket.set_position(position)
+    
+            ticket.set_status(status)
+    
             
             screen.blit(ticket.get_player_surface(), ticket.get_player_rect())
             
@@ -536,6 +603,11 @@ while running:
             screen.blit(ticket.get_status_surface(), ticket.get_status_rect())
             
             screen.blit(ticket.get_stack_surface(), ticket.get_stack_rect())
+        
+        
+        if text_box.is_active():
+            
+            screen.blit(text_box.render_text(), text_box.get_rect())
         
         
         if len(community_cards) != 0:

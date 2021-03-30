@@ -68,3 +68,8 @@ ticket:
   status_font: comic
   status_font_color: *id002
   status_font_size: 12
+  ticket_height: 0.08
+  ticket_left_margin: 0.0125
+  ticket_spacing: 0.05
+  ticket_top_margin: 0.1
+  ticket_width: 0.06

@@ -440,6 +440,10 @@ class text_input_box(pygame.sprite.Sprite):
     def set_active(self, active):
         self.active = active
         
+    def get_rect(self):
+        return self.rect
+        
+        
         
         
 class player_ticket(pygame.sprite.Group):
@@ -504,17 +508,28 @@ class player_ticket(pygame.sprite.Group):
         self.stack_characters = None
         self.status_characters = None
         
+        self.player_surface.blit(self.player_characters, self.player_surface.get_rect())
         
     def set_position(self, position):
+        
         self.position_characters = self.fonts['position'].render(position, True, self.text_colors['position'], self.background_colors['position'])
+
+        self.position_surface.blit(self.position_characters, self.position_surface.get_rect())
         
         
     def set_stack(self, stack):
+        
         self.stack_characters = self.fonts['stack'].render(stack, True, self.text_colors['stack'], self.background_colors['stack'])
+        
+        self.stack_surface.blit(self.stack_characters, self.stack_surface.get_rect())
     
     
     def set_status(self, status):
+        
         self.status_characters = self.fonts['status'].render(status, True, self.text_colors['status'], self.background_colors['status'])
+        
+        self.status_surface.blit(self.status_characters, self.status_surface.get_rect())
+        
         
         
     def recenter(self, xcenter, ycenter):
@@ -526,6 +541,8 @@ class player_ticket(pygame.sprite.Group):
         self.stack_rect.center = (xcenter + 1.1*self.width/2, ycenter - 0.45*self.height/2)
         
         self.status_rect.center = (xcenter + 1.1*self.width/2, ycenter + 0.45*self.height/2)
+        
+        
         
     
     def get_player_surface(self):

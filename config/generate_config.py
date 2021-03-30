@@ -83,6 +83,14 @@ ticket = {
                 'status_font_size': 12,
                 'status_font_color': black,
                 'status_fill_color': red,
+                
+                
+                'ticket_width': 0.06,
+                'ticket_height': 0.08,
+                'ticket_spacing': 0.05,
+                'ticket_top_margin': 0.1,
+                'ticket_left_margin': 0.0125,
+                
                 }
 
 
