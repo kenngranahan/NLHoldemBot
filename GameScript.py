@@ -150,6 +150,8 @@ ticket_position_font = pygame.font.Font('fonts/' + ticket_position_font + '.ttf'
 
 
 
+pot_font = pygame.font.Font('fonts/' + pot_font + '.ttf', pot_font_size)
+
 active_player_font = pygame.font.Font('fonts/' + active_player_font + '.ttf', active_player_font_size)
 
 current_player_font = pygame.font.Font('fonts/' + current_player_font + '.ttf',current_player_font_size)
@@ -239,6 +241,8 @@ poker_table.recenter(screen.get_rect().center)
 
 screen.blit(poker_table.get_image(), poker_table.get_rect())
 
+pot_rect = poker_table.pot_rect((100, 70), screen.get_rect().center)
+
 
 text_box = text_input_box(600, 100, 20, 20, text_box_font)
 
@@ -279,7 +283,7 @@ for idx, position in enumerate(GameEngine.get_positions()):
 
 running = True
 
-redraw_screen = True
+screen_resizing = False
 
 
 hands_have_not_been_dealt = True
@@ -308,6 +312,13 @@ while running:
             
             pygame.quit()
         
+        elif event.type == VIDEORESIZE:
+            
+            screen_resizing = True
+            
+            screen_size = event.dict['size']
+            
+            
             
         elif event.type == pygame.MOUSEBUTTONDOWN:
             
@@ -362,10 +373,6 @@ while running:
             hand_sprites.sprites()[1].recenter(center1)
         
             hand_dealt_sprites[position] = hand_sprites               
-    
-    
-    
-        
         
     
     if play_selected is not(None):
@@ -400,11 +407,6 @@ while running:
                 
                     showdown = True
             
-            
-            redraw_screen = True
-        
-        
-        
     
     if deal_community_cards:
         
@@ -517,12 +519,15 @@ while running:
 
 
         
-    if redraw_screen:
+    if not(screen_resizing):
         
-        redraw_screen = False
+        
+        screen.fill(screen_color)
         
         screen.blit(poker_table.get_image(), poker_table.get_rect())
         
+        screen.blit(poker_table.pot_image(str(GameEngine.get_pot()), (100, 50), pot_font, pot_font_color, pot_fill_color), 
+                    pot_rect)
         
         for idx, position in enumerate(GameEngine.get_positions()):
             
@@ -616,13 +621,95 @@ while running:
         
         
         pygame.display.flip()
+    
 
 
 
+    else:
+        
+        
+        screen_resizing = False
+        
+        
+        screen = pygame.display.set_mode(screen_size, flags = RESIZABLE)
+        
+        screen.fill(screen_color)
+        
+        screen_width, screen_height = screen.get_size()
+        
+        
+        poker_table.recenter(screen.get_rect().center)
+         
+        pot_rect = poker_table.pot_rect((100, 70), screen.get_rect().center)
+         
+        
+        
+        ticket_width = screen_width * config['ticket']['ticket_width']
+
+        ticket_height = screen_height * config['ticket']['ticket_height']
+
+        ticket_spacing = screen_height * config['ticket']['ticket_spacing']
+
+        ticket_top_margin = screen_height * config['ticket']['ticket_top_margin']
+
+        ticket_left_margin = screen_width * config['ticket']['ticket_left_margin']
+
+        for idx, key in enumerate(tickets.keys()):
+
+            tickets[key].recenter(ticket_left_margin + ticket_width, ticket_top_margin + (ticket_spacing + ticket_height/2)*(1 + idx))
+                                  
+        
+                                  
+        for widget in widgets:
+    
+            scale_factor = screen_width/widget.get_image().get_width()
+            
+            widget.rescale(scale_factor/len(widgets))
+            
+        widget_width, widget_height = widgets[0].get_image().get_size()
+            
+        for idx, widget in enumerate(widgets):
+        
+            widget.recenter((widget_width*(idx + 1/2), widget_height/2))
 
 
+        for idx, position in enumerate(GameEngine.get_positions()):
+                  
+            card_size = hand_sprites.sprites()[0].get_size()            
+        
+            center0, center1 = poker_table.hand_centers(idx, card_size)
+        
+            hand_dealt_sprites[position].sprites()[0].recenter(center0)
+            
+            hand_dealt_sprites[position].sprites()[1].recenter(center1)
+        
 
 
+        if len(community_cards) >= 3:
+            
+            card_size = community_cards.sprites()[0].get_size()            
+            
+            center0, center1, center2 = poker_table.flop_center(card_size)
+        
+                
+            community_cards.sprites()[0].recenter(center0)
+            
+            community_cards.sprites()[1].recenter(center1)
+        
+            community_cards.sprites()[2].recenter(center2)
+        
+ 
+            if len(community_cards) >= 4:
+            
+                center = poker_table.turn_center(card_size)
+            
+                community_cards.sprites()[3].recenter(center)
 
-
-
+        
+            if len(community_cards) == 5:
+                
+                center = poker_table.river_center(card_size)
+            
+                community_cards.sprites()[4].recenter(center)
+                
+                

@@ -111,9 +111,11 @@ class holdem_table(pygame.sprite.Sprite):
     player_title_rect(hand_number, card_size) : Rect
         returns a rect for drawing the player's name sitting at the position indexed by hand_number
     
-    #TODO update the method to remove card_size and scale
-    pot_rect(card_size, scale = 0.1) : Rect
-        returns a Rect for drawing the pot.The size is determined by card_size and scale 
+    pot_rect(size) : Rect
+        returns a Rect for drawing the pot
+        
+    pot_image(self, pot, size, font, font_color, fill_color) : Surface
+        returns the pot image
        
     flop_center() : ((x0, y0), (x1, y1), (x2, y2))
         returns the centers for the flop
@@ -205,14 +207,32 @@ class holdem_table(pygame.sprite.Sprite):
         
         return rect
      
-    def pot_rect(self, card_size, scale = 0.1):
-        _, h = card_size
         
-        rect = pygame.Rect(0, 0, self.rect.w*scale, self.rect.h*scale)
-        rect.center = self.rect.center
-        rect = rect.move(0,-h-self.card_spacing)
+    def pot_image(self, pot, size, font, font_color, fill_color):
         
-        return rect        
+        w, h = size
+        
+        pot_surface = pygame.Surface((w, h))
+        
+        pygame.Surface.fill(pot_surface, fill_color)
+        
+        pot_characters = font.render(pot, True, font_color, fill_color)
+        
+        pot_surface.blit(pot_characters, pot_characters.get_rect())
+        
+        return pot_surface
+        
+    
+    def pot_rect(self, size, center):
+        
+        w, h = size
+        
+        rect = pygame.Rect(0, 0, w, h)
+        
+        rect.center = center
+        
+        return rect    
+        
     
     def flop_center(self, card_size):
         x, y = self.rect.center 
@@ -511,6 +531,8 @@ class player_ticket(pygame.sprite.Group):
         self.player_surface.blit(self.player_characters, self.player_surface.get_rect())
         
     def set_position(self, position):
+         
+        pygame.Surface.fill(self.position_surface, self.background_colors['position'])
         
         self.position_characters = self.fonts['position'].render(position, True, self.text_colors['position'], self.background_colors['position'])
 
@@ -519,12 +541,16 @@ class player_ticket(pygame.sprite.Group):
         
     def set_stack(self, stack):
         
+        pygame.Surface.fill(self.stack_surface, self.background_colors['stack'])
+        
         self.stack_characters = self.fonts['stack'].render(stack, True, self.text_colors['stack'], self.background_colors['stack'])
         
         self.stack_surface.blit(self.stack_characters, self.stack_surface.get_rect())
     
     
     def set_status(self, status):
+        
+        pygame.Surface.fill(self.status_surface, self.background_colors['status'])
         
         self.status_characters = self.fonts['status'].render(status, True, self.text_colors['status'], self.background_colors['status'])
         
