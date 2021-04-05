@@ -1,6 +1,7 @@
 game_sprites:
   2_bet: widgets/2 Bet.jpeg
   3_bet: widgets/3 Bet.jpeg
+  all_in: widgets/All In.jpeg
   call: widgets/Call(Check).jpeg
   card_file_extension: .jpeg
   card_folder: custom_cards/

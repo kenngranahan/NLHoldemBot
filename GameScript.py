@@ -225,7 +225,9 @@ threebet = widget(pygame.image.load(config['game_sprites']['3_bet']), '3BB')
 
 raise_ = widget(pygame.image.load(config['game_sprites']['raise']), 'R')
 
-widgets = [call, fold, twobet, threebet, raise_]
+all_in = widget(pygame.image.load(config['game_sprites']['all_in']), 'A')
+
+widgets = [call, fold, twobet, threebet, raise_, all_in]
 
 
 for widget in widgets:
@@ -411,12 +413,13 @@ while game_running:
         
         GameEngine.set_play(play_selected)
         
+        
         if play_selected == 'R':
             
             if not(text_box.is_active()):
+             
                 GameEngine.set_raise(float(text_box.get_text()))
                 
-                print(float(text_box.get_text()))
                 text_box.clear_text()
             
                 play_selected = None
@@ -434,7 +437,7 @@ while game_running:
             
             play_selected_was_valid = False
             
-            if GameEngine.get_current_play() == 'R':
+            if (GameEngine.get_current_play() == 'R') or (GameEngine.get_current_play() == 'A'):
                 
                 position_to_end_the_round_of_betting = GameEngine.get_position_who_raised()
             

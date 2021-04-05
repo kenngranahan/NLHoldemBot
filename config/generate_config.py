@@ -21,6 +21,7 @@ game_sprites = {
                 '2_bet': 'widgets/2 Bet.jpeg',
                 '3_bet': 'widgets/3 Bet.jpeg',
                 'raise': 'widgets/Raise.jpeg',
+                'all_in': 'widgets/All In.jpeg',
                 'card_folder': 'custom_cards/',
                 'card_file_extension': '.jpeg',
                 'card_scale': 0.1,

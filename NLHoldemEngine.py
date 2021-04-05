@@ -534,6 +534,7 @@ class NLHoldemEngine:
         bet_placed = self.amount_paid[self.current_play]
 
         
+
         if self.current_play == 'R':
 
             if bet_placed < self.amount_to_call - self.table[self.current_position]['stake']:
@@ -549,7 +550,7 @@ class NLHoldemEngine:
             #Check if the player has raised, if so update the amount to call 
             if bet_placed > self.amount_to_call:
 
-                self.amount_to_call += bet_placed
+                self.amount_to_call = bet_placed + self.table[self.current_position]['stake']
 
                 self.position_who_raised = self.current_position
         
