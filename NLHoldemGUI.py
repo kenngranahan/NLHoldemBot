@@ -379,7 +379,7 @@ class text_input_box(pygame.sprite.Sprite):
     """
     
     
-    def __init__(self, xcenter, ycenter, w, h, font, text_color = (0,0,0), background_color = (255,255,255)):
+    def __init__(self, xcenter, ycenter, w, h, font, text_color = (255,255,255), background_color = (0,0,0)):
         pygame.sprite.Sprite.__init__(self)
         
         self.center = (xcenter, ycenter)

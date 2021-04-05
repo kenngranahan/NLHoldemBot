@@ -22,7 +22,9 @@ game_sprites = {
                 '3_bet': 'widgets/3 Bet.jpeg',
                 'raise': 'widgets/Raise.jpeg',
                 'card_folder': 'custom_cards/',
-                'card_file_extension': '.jpeg'
+                'card_file_extension': '.jpeg',
+                'card_scale': 0.1,
+                'table_scale': 0.4,
                 }
 
 
@@ -52,13 +54,19 @@ gameplay = {
             'pot_font_size': 12,
             'pot_font_color': white,
             'pot_fill_color': black,
+            'pot_top_margin': 0.42,
+            'pot_left_margin':0.50,
+            'pot_width': 0.1,
+            'pot_height': 0.04,
             
             'text_box_font': 'comic', 
             'text_box_font_size': 12,
             'text_box_font_color': black,
             'text_box_fill_color': grey,
-            'text_box_center': (200, 300),
-            'text_box_size': (300, 100)
+            'text_box_top_margin': 0.2,
+            'text_box_left_margin': 0.3,
+            'text_box_width': 0.2,
+            'text_box_height': 0.1,
             }
 
 

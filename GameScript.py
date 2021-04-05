@@ -19,10 +19,7 @@ players = ['player1', 'player2']
 
 buyins = [200, 200]
 
-
-card_scale = 0.1
-
-table_scale = 0.4
+GameEngine = NLHoldemEngine(players = players, buyins = buyins, max_buyin = 400, min_buyin = 50, BB = 2)
 
 
   
@@ -72,11 +69,23 @@ pot_font_color = config['gameplay']['pot_font_color']
 
 pot_font_size = config['gameplay']['pot_font_size']
 
+ypot = screen_height * config['gameplay']['pot_top_margin']
+
+xpot = screen_width * config['gameplay']['pot_left_margin']
+
+pot_width = screen_width * config['gameplay']['pot_width']
+
+pot_height = screen_height * config['gameplay']['pot_height']
 
 
-text_box_center = config['gameplay']['text_box_center']
 
-text_box_size = config['gameplay']['text_box_size']
+xtext_box = screen_width * config['gameplay']['text_box_left_margin']
+
+ytext_box = screen_height * config['gameplay']['text_box_top_margin']
+
+text_box_width = screen_width * config['gameplay']['text_box_width']
+
+text_box_height = screen_height * config['gameplay']['text_box_height']
 
 text_box_fill_color = config['gameplay']['text_box_fill_color']
 
@@ -199,8 +208,13 @@ card_folder = config['game_sprites']['card_folder']
 
 card_file_extension = config['game_sprites']['card_file_extension']
 
+card_scale = config['game_sprites']['card_scale']
+
+table_scale = config['game_sprites']['table_scale']
 
 
+
+#Initalize the widgets
 call = widget(pygame.image.load(config['game_sprites']['call']), 'C')
 
 fold = widget(pygame.image.load(config['game_sprites']['fold']), 'F')
@@ -214,8 +228,6 @@ raise_ = widget(pygame.image.load(config['game_sprites']['raise']), 'R')
 widgets = [call, fold, twobet, threebet, raise_]
 
 
-  
-
 for widget in widgets:
     
     scale_factor = screen_width/widget.get_image().get_width()
@@ -228,29 +240,35 @@ widget_width, widget_height = widgets[0].get_image().get_size()
 for idx, widget in enumerate(widgets):
 
     widget.recenter((widget_width*(idx + 1/2), widget_height/2))
-    
 
 
+
+
+#Initalize the screen
 screen = pygame.display.set_mode(screen_size, flags = RESIZABLE)
 
 screen.fill(screen_color)
 
+
+
+#Initalize the table sprite and center it on the screen
 poker_table = holdem_table(pygame.image.load(config['game_sprites']['table']))
 
 poker_table.recenter(screen.get_rect().center)
 
 screen.blit(poker_table.get_image(), poker_table.get_rect())
 
-pot_rect = poker_table.pot_rect((100, 70), screen.get_rect().center)
 
 
-text_box = text_input_box(600, 100, 20, 20, text_box_font)
+#Initalize the text_box object and the Rect to draw the pot
+pot_rect = poker_table.pot_rect((pot_width, pot_height), (xpot, ypot))
+
+text_box = text_input_box(xtext_box, ytext_box, text_box_width, text_box_height, text_box_font)
 
 
-GameEngine = NLHoldemEngine(players = players, buyins = buyins, max_buyin = 400, min_buyin = 50, BB = 2)
 
-community_cards = pygame.sprite.Group()
 
+#Initalize the tickets which display the player information
 tickets = {}
 
 player_info = GameEngine.get_player_info()
@@ -280,15 +298,14 @@ for idx, position in enumerate(GameEngine.get_positions()):
 
 
 
-
-running = True
+#Initalize some booleans which trigger variour blocks of code
+game_running = True
 
 screen_resizing = False
 
-
 hands_have_not_been_dealt = True
 
-play_selected_was_valid = True
+play_selected_was_valid = False
 
 play_selected = None
 
@@ -301,14 +318,20 @@ winner_decided = False
 position_to_end_the_round_of_betting = 'SB'
 
 
-while running:
+
+#A container for the community card sprites
+community_cards = pygame.sprite.Group()
+
+
+while game_running:
     
+    pygame.event.pump()
     
     for event in pygame.event.get():
          
         if event.type == pygame.QUIT:
             
-            running = False
+            game_running = False
             
             pygame.quit()
         
@@ -332,15 +355,22 @@ while running:
                     
                         text_box.set_active(True)
         
-                        text_box.read_text(event)
-                        
-                      
+                    
+        
+        if text_box.is_active():
+            
+            text_box.read_text(event)
+        
+    
+        
 
     if hands_have_not_been_dealt:
+        
         
         hands_have_not_been_dealt = False
         
         GameEngine.pay_in_blinds_and_deal()
+        
         
         player_info = GameEngine.get_player_info()
                 
@@ -375,16 +405,34 @@ while running:
             hand_dealt_sprites[position] = hand_sprites               
         
     
+    
+
     if play_selected is not(None):
         
         GameEngine.set_play(play_selected)
         
-        play_selected = None
+        if play_selected == 'R':
+            
+            if not(text_box.is_active()):
+                GameEngine.set_raise(float(text_box.get_text()))
+                
+                print(float(text_box.get_text()))
+                text_box.clear_text()
+            
+                play_selected = None
+            
+                play_selected_was_valid = GameEngine.update_game_and_move_to_next_active_position()
         
-        play_selected_was_valid = GameEngine.update_game_and_move_to_next_active_position()
-    
+        else:
+            
+            play_selected = None
+        
+            play_selected_was_valid = GameEngine.update_game_and_move_to_next_active_position()
+            
         
         if play_selected_was_valid:
+            
+            play_selected_was_valid = False
             
             if GameEngine.get_current_play() == 'R':
                 
@@ -407,6 +455,7 @@ while running:
                 
                     showdown = True
             
+    
     
     if deal_community_cards:
         
@@ -526,7 +575,7 @@ while running:
         
         screen.blit(poker_table.get_image(), poker_table.get_rect())
         
-        screen.blit(poker_table.pot_image(str(GameEngine.get_pot()), (100, 50), pot_font, pot_font_color, pot_fill_color), 
+        screen.blit(poker_table.pot_image(str(GameEngine.get_pot()), (pot_width, pot_height), pot_font, pot_font_color, pot_fill_color), 
                     pot_rect)
         
         for idx, position in enumerate(GameEngine.get_positions()):
@@ -639,7 +688,7 @@ while running:
         
         
         poker_table.recenter(screen.get_rect().center)
-         
+        
         pot_rect = poker_table.pot_rect((100, 70), screen.get_rect().center)
          
         

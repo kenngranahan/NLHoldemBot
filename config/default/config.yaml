@@ -4,9 +4,11 @@ game_sprites:
   call: widgets/Call(Check).jpeg
   card_file_extension: .jpeg
   card_folder: custom_cards/
+  card_scale: 0.1
   fold: widgets/Fold.jpeg
   raise: widgets/Raise.jpeg
   table: table/table.jpeg
+  table_scale: 0.4
 gameplay:
   active_player_fill_color: &id001 !!python/tuple
   - 255
@@ -36,16 +38,18 @@ gameplay:
   pot_font: comic
   pot_font_color: *id001
   pot_font_size: 12
-  text_box_center: !!python/tuple
-  - 200
-  - 300
+  pot_height: 0.04
+  pot_left_margin: 0.5
+  pot_top_margin: 0.42
+  pot_width: 0.1
   text_box_fill_color: *id003
   text_box_font: comic
   text_box_font_color: *id002
   text_box_font_size: 12
-  text_box_size: !!python/tuple
-  - 300
-  - 100
+  text_box_height: 0.1
+  text_box_left_margin: 0.3
+  text_box_top_margin: 0.2
+  text_box_width: 0.2
 screen:
   color: *id001
   size: !!python/tuple
